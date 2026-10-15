@@ -1,0 +1,44 @@
+# PhotoBouche settings: copy to /etc/photobouche/config.toml on each Pi.
+# Every value has a default; keep only what you change. The same file works on both
+# Pis: each command reads only its own sections.
+#
+# The control screen saves its live tweaks (threshold, scream mode, latest/cycle) to
+# <root>/state.json, which overrides this file. Delete it to go back to these values.
+
+[paths]
+root = "/srv/photobouche"
+# Under it: display/ (shots for screens), archive/ (CR2 + JPEG, by day),
+# rejected/ (hidden with X), making_of/ and clips/ (copy material here), index.json.
+
+[booth]
+port = 8765
+
+[camera]
+# Microphone BY NAME, from `photobouche mics`. Empty: no scream mode.
+mic = "USB PnP Sound Device"
+scream_mode = true
+trigger_db = 15.0     # dB above the room's noise floor. Tune on site with `photobouche listen`.
+fire_after = 0.25     # s into the scream before firing: mouth wide open
+cooldown = 3.0        # s between shots: flash recycle + download
+display_size = 1920
+
+[booth_screen]
+mode = "cycle"        # "latest" holds the last shot; "cycle" goes round the recent ones
+fresh_seconds = 8.0
+cycle_seconds = 4.0
+cycle_count = 12
+
+[show]
+booth_url = "http://raspi4-1.local:8765"   # the booth Pi
+fresh_seconds = 8.0
+image_seconds = 6.0
+clip_every = 5        # one clip after this many images; 0 = never
+recent_hours = 2.0
+recent_weight = 3.0   # live shots younger than recent_hours come up 3x as often
+no_repeat = 20
+cache_mb = 500
+# local_clips = "/home/pi/clips"
+# audio_device = "alsa/hdmi:CARD=vc4hdmi0,DEV=0"   # `mpv --audio-device=help` lists them
+# music_dir = "/home/pi/music"                     # background music, ducked under clips
+# music_volume = 60
+# music_duck_volume = 15

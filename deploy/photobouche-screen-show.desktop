@@ -1,0 +1,7 @@
+# Slideshow Pi: cp to ~/.config/autostart/
+[Desktop Entry]
+Type=Application
+Name=PhotoBouche slideshow
+# Restarts on crash. To stop it (loop included): pkill -f -- '--profile show'
+Exec=sh -c 'while true; do /home/pi/photobouche/.venv/bin/photobouche screen --profile show; sleep 2; done'
+X-GNOME-Autostart-enabled=true

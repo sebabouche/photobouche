@@ -1,0 +1,55 @@
+[project]
+name = "photobouche"
+version = "0.1.0"
+description = "Scream-triggered photobooth and live slideshow for two Raspberry Pi 4"
+readme = "README.md"
+# Pi OS ships Python 3.11.
+requires-python = ">=3.11,<3.14"
+authors = [{ name = "Sebastien Nicolaidis" }]
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.26,<3",
+    "pillow>=10,<12",
+    "typer>=0.15,<1",
+    "rich>=13,<15",
+]
+
+[project.optional-dependencies]
+# Booth Pi: camera, microphone and the control screen.
+# gphoto2 (python bindings) needs libgphoto2-dev on the Pi: see README.
+booth = ["gphoto2>=2.5,<3", "sounddevice>=0.5.6,<0.6", "pygame-ce>=2.5,<3"]
+# The slideshow Pi needs only mpv (system package): no extra.
+
+[project.scripts]
+photobouche = "photobouche.cli:app"
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "photobouche", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+ruff = "0.16.7"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = ["hardware: needs the real camera, mic or mpv (deselect with -m 'not hardware')"]
+filterwarnings = ["error", "ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Typer's API is function calls in argument defaults.
+"src/photobouche/cli.py" = ["B008"]

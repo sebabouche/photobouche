@@ -1,0 +1,25 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+config.toml
+demo/
+
+# Event media: brought from the shared drive, never committed (public repo).
+media/
+*.mp4
+*.mov
+*.MOV
+*.mkv
+*.m4v
+*.webm
+*.cr2
+*.CR2
+*.jpg
+*.JPG
+*.jpeg
+*.png
+*.heic
+*.HEIC

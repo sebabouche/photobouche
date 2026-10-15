@@ -1,0 +1,16 @@
+# Booth Pi. User service (the mic goes through the desktop's PipeWire):
+#   cp deploy/photobouche-*.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now photobouche-camera photobouche-booth
+#   sudo loginctl enable-linger pi
+[Unit]
+Description=PhotoBouche camera (5D tether + scream trigger)
+After=pipewire.service
+
+[Service]
+ExecStart=%h/photobouche/.venv/bin/photobouche camera
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
