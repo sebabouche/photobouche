@@ -1,12 +1,24 @@
 # PhotoBouche
 
-Scream-triggered photobooth and live slideshow on two Raspberry Pi 4s.
+Photobooth and live slideshow on two Raspberry Pi 4s, with an optional scream trigger.
 
-People scream into the big mouth. A Canon EOS 5D Mark II fires, either from its remote or by
-itself when the scream is loud enough. The shot appears within about 2 s on the **control
-screen** next to the booth, which shows the latest shot plus an equalizer of the mic, and on the
-**slideshow**. The slideshow then goes back to a mixed rotation of shots, making-of photos and
-clips, with sound.
+People pose, or scream, in the big mouth, and a Canon EOS 5D Mark II takes the picture. The shot
+appears within about 2 s on the **control screen** next to the booth and on the **slideshow**.
+The slideshow then goes back to a mixed rotation of shots, making-of photos and clips, with
+sound.
+
+## Taking a photo
+
+| How | When it works | What it needs |
+|---|---|---|
+| **The camera's remote** (or its shutter button) | Always, in every mode | Nothing from PhotoBouche: the camera fires, and PhotoBouche picks up the file. |
+| **A scream** | When scream mode is on (key **S** on the control screen, or `scream_mode` in the config) | A USB mic named in `[camera] mic`. The shutter fires about 0.25 s into a scream loud enough to pass the SHOOT line, once per scream, then waits about 3 s. |
+| **Space** on the control screen, or `photobouche shoot` | Always | For staff and for tests. |
+
+The remote is the normal way to run the booth. The scream trigger is an extra you can turn on
+and off during the evening; with no mic configured, PhotoBouche is a plain remote-controlled
+photobooth. Every shot counts the same, whatever fired it, and also starts the ~3 s pause
+before a scream can fire again.
 
 ```
  USB mic ─▶ BOOTH Pi (raspi4-1)                                 SLIDESHOW Pi (raspi4-2)
@@ -20,7 +32,7 @@ clips, with sound.
 
 | Command | Where | What |
 |---|---|---|
-| `photobouche camera` | booth | Owns the 5D. Downloads every shot, files the CR2 in `archive/` and writes a 1920px JPEG to `display/`. Fires the shutter on a scream. `--fake` works without a camera. |
+| `photobouche camera` | booth | Owns the 5D. Downloads every shot (remote, scream or Space), files the CR2 in `archive/` and writes a 1920px JPEG to `display/`. `--fake` works without a camera. |
 | `photobouche booth` | booth | HTTP server for the slideshow (long-poll feed + files with Range). |
 | `photobouche screen --profile booth` | booth | Control screen: latest shot, equalizer, SHOOT line. |
 | `photobouche screen --profile show` | slideshow | The show. `--windowed` for a laptop. |
