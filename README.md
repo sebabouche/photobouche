@@ -88,23 +88,39 @@ When the booth is unreachable, the show keeps going with the images already cach
 
 ## Making-of media
 
-Photos and clips from the shared drive **never go in git**: the repo is public, and `media/`
-plus every image and video extension are in `.gitignore`. Drop them in `media/` or anywhere
-else, then run:
+Photos and clips from the shared drive **never go in git**: the repo is public. `media/`,
+`external_data/` and every image and video extension, in any letter case, are in `.gitignore`.
+Put one folder per person in `external_data/`, then:
 
 ```sh
-photobouche prepare media/shared media/prepared --transcode   # 1920px JPEGs; clips → H.264 ≤1080p
-deploy/push-media.sh media/prepared raspi4-1.local             # rsync to the booth (adds, never deletes)
+photobouche prepare external_data --dry-run              # review every decision first
+photobouche prepare external_data media/prepared         # do it
+deploy/push-media.sh media/prepared raspi4-1.local       # rsync to the booth (adds, never deletes)
 ```
 
-`prepare` turns any image (JPEG, PNG, TIFF, CR2) into an upright 1920px JPEG. That keeps the
-slideshow Pi's memory and SD cache small. It names files after their folders, so two
-`IMG_0001.jpg` from different folders don't collide. It skips files that are already up to
-date.
+What `prepare` does:
 
-Clips are probed with ffprobe. Anything other than H.264 at 1080p or below is reported, and
-with `--transcode` it is re-encoded by ffmpeg. HEIC photos from phones are ignored: export them
-as JPEG first.
+- **Duplicates.** Many people post the same material, often forwarded through WhatsApp,
+  which re-compresses, shrinks, renames (`IMG-…-WA…`) and strips the metadata. Files are
+  therefore matched on what they show: a 32×32 thumbnail for photos; duration plus three
+  frames for clips, or the same name and duration for a clip exported twice.
+  - **Which copy is kept:** the one with real camera metadata (capture time, camera model),
+    then the largest, then the one not named like a WhatsApp file.
+  - **Which files can match:** a look-alike only counts if it comes from another person's
+    folder. Within one folder, look-alikes are bursts (two 5D frames in the same second), and
+    only byte-identical files are dropped.
+- **Photos** become upright 1920px JPEGs, from JPEG, PNG, TIFF, CR2 or DNG. Thumbnails below
+  800px are dropped. HEIC is ignored: export it as JPEG first.
+- **Every clip is re-encoded,** even one that would play, so the Pi never meets a surprise:
+  - **Format:** 8-bit H.264 High@4.0 and BT.709, at most 30 fps and 8 Mb/s, with AAC stereo
+    and the index up front for streaming.
+  - **Picture:** rotation is baked in and the frame fits inside 1920×1080. Portrait clips fit
+    in too, because 1080×1920 is past the Pi 4 decoder's limit.
+  - **HDR:** iPhone HDR (HLG or Dolby Vision) is converted to standard colour.
+  - **Long clips** are cut into equal parts of at most 45 s (`--max-clip`).
+- **Names** become lowercase ASCII, prefixed with the folders they came from:
+  `Zoé/IMG 1.png` → `zoe_img_1.jpg`.
+- **Re-runs** only redo what changed.
 
 Then, on the slideshow Pi, check that the booth's data actually plays well from there:
 

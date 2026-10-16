@@ -120,19 +120,55 @@ def shoot(config: Path | None = ConfigOpt, root: Path | None = RootOpt) -> None:
 def prepare(
     src: Path = typer.Argument(..., help="Folder of making-of photos and clips (any depth)."),
     dest: Path = typer.Argument(Path("media/prepared"), help="Output: making_of/ and clips/."),
-    transcode: bool = typer.Option(False, help="Re-encode clips the Pi may struggle with (ffmpeg)."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show the plan, encode nothing."),
+    max_clip: float = typer.Option(45.0, help="Cut longer clips into equal parts of at most this (s)."),
+    min_image: int = typer.Option(800, help="Drop images whose long edge is below this (px)."),
 ) -> None:
-    """Make making-of material Pi-friendly before pushing it to the booth."""
-    from photobouche.media import prepare as run
+    """Make making-of material Pi-friendly: dedupe, resize photos, re-encode every clip."""
+    from photobouche import media
 
     _setup(None, None)
-    counts = run(src, dest, do_transcode=transcode)
+    if dry_run:
+        jobs = media.plan(src, max_clip=max_clip, min_image=min_image)
+        _print_plan(jobs, src)
+        return
+    jobs, counts = media.prepare(src, dest, max_clip=max_clip, min_image=min_image)
+    _print_plan(jobs, src, summary_only=True)
     console.print(
-        f"{counts['images']} images, {counts['clips']} clips written to {dest} "
-        f"({counts['skipped']} up to date, {counts['ignored']} ignored, "
-        f"{counts['problems']} with problems)"
+        f"written: {counts['images']} images, {counts['clips']} clip files "
+        f"({counts['up_to_date']} already up to date, {counts['failed']} failed) in {dest}"
     )
-    console.print(f"next: deploy/push-media.sh {dest} <booth host>")
+    console.print(f"next: deploy/push-media.sh {dest} raspi4-1.local")
+
+
+def _print_plan(jobs, src: Path, summary_only: bool = False) -> None:
+    kept = [j for j in jobs if not j.skipped]
+    skipped = [j for j in jobs if j.skipped]
+    if not summary_only:
+        for j in jobs:
+            rel = j.src.relative_to(src)
+            if j.skipped:
+                console.print(f"[dim]skip[/] {rel}  [yellow]{j.note}[/]", highlight=False)
+            else:
+                extra = ""
+                if j.info is not None:
+                    w, h = j.info.display_size
+                    issues = ", ".join(j.info.problems)
+                    extra = f"  [dim]{j.info.codec} {w}x{h} {j.info.duration:.0f}s[/]"
+                    extra += f" [yellow]{issues}[/]" if issues else ""
+                parts = f" → {len(j.outputs)} parts" if len(j.outputs) > 1 else ""
+                console.print(f"{j.kind:5} {rel} → {j.outputs[0]}{parts}{extra}", highlight=False)
+    reasons: dict[str, int] = {}
+    for j in skipped:
+        key = j.note.split(" as ")[0].split(" (")[0]
+        reasons[key] = reasons.get(key, 0) + 1
+    images = sum(1 for j in kept if j.kind == "image")
+    clips = [j for j in kept if j.kind == "clip"]
+    console.print(
+        f"\n{images} images and {len(clips)} clips kept "
+        f"({sum(len(j.outputs) for j in clips)} clip files after cutting); skipped: "
+        + ", ".join(f"{n} {r}" for r, n in sorted(reasons.items(), key=lambda x: -x[1]))
+    )
 
 
 @app.command("check-stream")

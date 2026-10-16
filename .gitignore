@@ -7,19 +7,25 @@ dist/
 config.toml
 demo/
 
-# Event media: brought from the shared drive, never committed (public repo).
+# Event media: never committed (public repo, the photos show people).
 media/
-*.mp4
-*.mov
-*.MOV
-*.mkv
-*.m4v
-*.webm
-*.cr2
-*.CR2
-*.jpg
-*.JPG
-*.jpeg
-*.png
-*.heic
-*.HEIC
+external_data/
+# Any image or video anywhere, whatever the case of its extension.
+*.[mM][pP]4
+*.[mM][oO][vV]
+*.[mM][kK][vV]
+*.[mM]4[vV]
+*.[wW][eE][bB][mM]
+*.[aA][vV][iI]
+*.[cC][rR][23]
+*.[dD][nN][gG]
+*.[nN][eE][fF]
+*.[aA][rR][wW]
+*.[jJ][pP][gG]
+*.[jJ][pP][eE][gG]
+*.[pP][nN][gG]
+*.[tT][iI][fF]
+*.[tT][iI][fF][fF]
+*.[wW][eE][bB][pP]
+*.[hH][eE][iI][cC]
+*.[hH][eE][iI][fF]
